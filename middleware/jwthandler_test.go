@@ -9,7 +9,7 @@ import (
 	"github.com/cristalhq/jwt/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
-	mock_middleware "github.com/reversersed/LitGO-backend/tree/main/api_gateway/pkg/middleware/mocks"
+	mock_middleware "github.com/reversersed/LitGO-backend-pkg/middleware/mocks"
 	users_pb "github.com/reversersed/LitGO-proto/gen/go/users"
 	users_mock_pb "github.com/reversersed/LitGO-proto/gen/go/users/mocks"
 	"github.com/stretchr/testify/assert"
