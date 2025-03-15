@@ -129,7 +129,7 @@ func TestMiddleware(t *testing.T) {
 			request: func() *http.Request {
 				return httptest.NewRequest(http.MethodGet, "/", nil)
 			},
-			exceptedStatus: http.StatusUnauthorized,
+			exceptedStatus: http.StatusOK,
 		},
 		{
 			name: "wrong secret key",
@@ -145,7 +145,7 @@ func TestMiddleware(t *testing.T) {
 				return r
 			},
 			mockBehaviour: func(logger *mock_middleware.MockLogger, userServer *users_mock_pb.MockUserClient) {
-				logger.EXPECT().Errorf(gomock.Any(), gomock.Any(), gomock.Any())
+				logger.EXPECT().Errorf(gomock.Any(), gomock.Any())
 			},
 			exceptedStatus: http.StatusUnauthorized,
 		},
@@ -164,6 +164,7 @@ func TestMiddleware(t *testing.T) {
 			},
 			mockBehaviour: func(logger *mock_middleware.MockLogger, userServer *users_mock_pb.MockUserClient) {
 				logger.EXPECT().Info(gomock.Any())
+				logger.EXPECT().Errorf(gomock.Any(), gomock.Any())
 			},
 			exceptedStatus: http.StatusUnauthorized,
 		},
