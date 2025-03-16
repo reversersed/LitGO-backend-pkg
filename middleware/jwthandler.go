@@ -68,6 +68,7 @@ func NewJwtMiddleware(logger Logger, secret string, userService users_pb.UserCli
 func (j *jwtMiddleware) Middleware(c *gin.Context) {
 	headertoken, err := c.Cookie(TokenCookieName)
 	if err != nil {
+		c.Next()
 		return
 	}
 	key := []byte(j.secret)
@@ -133,7 +134,7 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 
 	if tokenReply != nil {
 		j.logger.Infof("user %s %s refreshed with new token", claims.ID, claims.Login)
-		c.SetCookie(TokenCookieName, tokenReply.GetToken(), (int)((20*time.Minute)/time.Second), "/", "", true, true)
+		c.SetCookie(TokenCookieName, tokenReply.GetToken(), (int)((7*24*time.Hour)/time.Second), "/", "", true, true)
 		c.SetCookie(RefreshCookieName, tokenReply.GetRefreshtoken(), (int)((31*24*time.Hour)/time.Second), "/", "", true, true)
 	}
 }
@@ -183,7 +184,7 @@ func CreateTokenCookie(token string, refreshToken string, rememberMe bool) (toke
 		}
 	} else {
 		time := (int)((31 * 24 * time.Hour) / time.Second)
-		if rememberMe {
+		if !rememberMe {
 			time = 0
 		}
 		tokenCookie = http.Cookie{
