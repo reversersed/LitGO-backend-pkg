@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/cristalhq/jwt/v3"
@@ -138,19 +139,19 @@ func GetCredentialsFromContext(c context.Context, logger Logger) (*shared_pb.Use
 	}
 	userId := md.Get(UserIdKey)
 	if len(userId) != 1 {
-		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User ID", Description: "User id was not found in metadata"})
+		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User ID", Description: "User id was not found in metadata", Actualvalue: strings.Join(userId, ",")})
 		return nil, erro.Err()
 	}
 	userLogin := md.Get(UserLoginKey)
 	if len(userLogin) != 1 {
 		logger.Warnf("can't get user %s login", userId[0])
-		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User Login", Description: "User login was not found in metadata"})
+		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User Login", Description: "User login was not found in metadata", Actualvalue: strings.Join(userLogin, ",")})
 		return nil, erro.Err()
 	}
 	userRoles := md.Get(UserRolesKey)
 	if len(userRoles) == 0 {
 		logger.Warnf("can't get user %s %s roles", userId[0], userLogin[0])
-		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User Roles", Description: "User roles was not found in metadata"})
+		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User Roles", Description: "User roles was not found in metadata", Actualvalue: strings.Join(userRoles, ",")})
 		return nil, erro.Err()
 	}
 
