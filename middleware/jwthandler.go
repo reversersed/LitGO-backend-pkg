@@ -170,17 +170,21 @@ func CreateTokenCookie(token string, refreshToken string, rememberMe bool) (toke
 			HttpOnly: true,
 		}
 	} else {
+		time := (int)((20 * time.Minute) / time.Second)
+		if rememberMe {
+			time = 0
+		}
 		tokenCookie = http.Cookie{
 			Name:     TokenCookieName,
 			Value:    token,
-			MaxAge:   (int)((20 * time.Minute) / time.Second),
+			MaxAge:   time,
 			Path:     "/",
 			Domain:   "",
 			Secure:   true,
 			HttpOnly: true,
 		}
 	}
-	if len(refreshToken) == 0 {
+	if len(refreshToken) == 0 || !rememberMe {
 		refreshCookie = http.Cookie{
 			Name:     RefreshCookieName,
 			Value:    "",
