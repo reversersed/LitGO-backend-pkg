@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"github.com/cristalhq/jwt/v3"
@@ -110,7 +111,7 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		c.SetCookie(TokenCookieName, tokenReply.GetToken(), (int)((31*24*time.Hour)/time.Second), "/", "", true, true)
+		c.SetCookie(TokenCookieName, tokenReply.GetToken(), (int)((20*time.Minute)/time.Second), "/", "", true, true)
 		c.SetCookie(RefreshCookieName, tokenReply.GetRefreshtoken(), (int)((31*24*time.Hour)/time.Second), "/", "", true, true)
 	}
 
@@ -156,4 +157,49 @@ func GetCredentialsFromContext(c context.Context, logger Logger) (*shared_pb.Use
 		Login: userLogin[0],
 		Roles: userRoles,
 	}, nil
+}
+func CreateTokenCookie(token string, refreshToken string, rememberMe bool) (tokenCookie http.Cookie, refreshCookie http.Cookie) {
+	if len(token) == 0 {
+		tokenCookie = http.Cookie{
+			Name:     TokenCookieName,
+			Value:    "",
+			MaxAge:   -1,
+			Path:     "/",
+			Domain:   "",
+			Secure:   true,
+			HttpOnly: true,
+		}
+	} else {
+		tokenCookie = http.Cookie{
+			Name:     TokenCookieName,
+			Value:    token,
+			MaxAge:   (int)((20 * time.Minute) / time.Second),
+			Path:     "/",
+			Domain:   "",
+			Secure:   true,
+			HttpOnly: true,
+		}
+	}
+	if len(refreshToken) == 0 {
+		refreshCookie = http.Cookie{
+			Name:     RefreshCookieName,
+			Value:    "",
+			MaxAge:   -1,
+			Path:     "/",
+			Domain:   "",
+			Secure:   true,
+			HttpOnly: true,
+		}
+	} else {
+		refreshCookie = http.Cookie{
+			Name:     RefreshCookieName,
+			Value:    refreshToken,
+			MaxAge:   (int)((31 * 24 * time.Hour) / time.Second),
+			Path:     "/",
+			Domain:   "",
+			Secure:   true,
+			HttpOnly: true,
+		}
+	}
+	return
 }
