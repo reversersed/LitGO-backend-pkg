@@ -122,7 +122,7 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 	for _, role := range claims.Roles {
 		md.Append(UserRolesKey, role)
 	}
-	ctx := metadata.NewIncomingContext(c.Request.Context(), md)
+	ctx := metadata.NewOutgoingContext(c.Request.Context(), md)
 	c.Request = c.Request.WithContext(ctx)
 	c.Next()
 

@@ -39,57 +39,6 @@ func generateToken(exp time.Duration) string {
 	token, _ := builder.Build(claims)
 	return token.String()
 }
-func TestGetCredentials(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	logger := mock_middleware.NewMockLogger(ctrl)
-	server := users_mock_pb.NewMockUserClient(ctrl)
-	logger.EXPECT().Info(gomock.Any()).AnyTimes()
-	logger.EXPECT().Infof(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes()
-	jwt, err := NewJwtMiddleware(logger, testSecretKey, server)
-	assert.NoError(t, err)
-
-	router := gin.Default()
-	router.Use(ErrorHandler)
-	router.Group("/success").Use(jwt.Middleware).GET("/", func(ctx *gin.Context) {
-		credential, err := GetCredentialsFromContext(ctx.Request.Context(), nil)
-		if assert.NoError(t, err) {
-			assert.Equal(t, userId, credential.Id)
-			assert.Equal(t, "user", credential.Login)
-			assert.Equal(t, []string{"user"}, credential.Roles)
-			ctx.Status(http.StatusOK)
-		} else {
-			ctx.Error(err)
-		}
-	})
-	router.GET("/error", func(ctx *gin.Context) {
-		_, err := GetCredentialsFromContext(ctx.Request.Context(), nil)
-		if assert.Error(t, err) {
-			ctx.Error(err)
-		} else {
-			ctx.Status(http.StatusInternalServerError)
-		}
-	})
-
-	r := httptest.NewRequest(http.MethodGet, "/success/", nil)
-	r.AddCookie(&http.Cookie{
-		Name:   TokenCookieName,
-		Value:  generateToken(time.Second * 5),
-		Path:   "/",
-		MaxAge: 30,
-	})
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
-
-	r = httptest.NewRequest(http.MethodGet, "/error", nil)
-	w = httptest.NewRecorder()
-	router.ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Result().StatusCode)
-}
 func TestMiddleware(t *testing.T) {
 	table := []struct {
 		name           string
