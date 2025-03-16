@@ -22,9 +22,9 @@ import (
 const (
 	TokenCookieName   string = "authTokenCookie"
 	RefreshCookieName string = "refreshTokenCookie"
-	UserIdKey         string = "userAuthId"
-	UserLoginKey      string = "userLoginCredential"
-	UserRolesKey      string = "userRolesCredential"
+	UserIdKey         string = "userauthid"
+	UserLoginKey      string = "userlogincredential"
+	UserRolesKey      string = "userrolescredential"
 )
 
 type Logger interface {
@@ -137,18 +137,19 @@ func GetCredentialsFromContext(c context.Context, logger Logger) (*shared_pb.Use
 	if !ok {
 		return nil, status.New(codes.Unauthenticated, "no metadata credentials found").Err()
 	}
-	userId := md.Get(UserIdKey)
+	userId := md.Get(strings.ToLower(UserIdKey))
 	if len(userId) != 1 {
+		logger.Warnf("can't get user id, but got metadata from ctx %v", md)
 		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User ID", Description: "User id was not found in metadata", Actualvalue: strings.Join(userId, ",")})
 		return nil, erro.Err()
 	}
-	userLogin := md.Get(UserLoginKey)
+	userLogin := md.Get(strings.ToLower(UserLoginKey))
 	if len(userLogin) != 1 {
 		logger.Warnf("can't get user %s login", userId[0])
 		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User Login", Description: "User login was not found in metadata", Actualvalue: strings.Join(userLogin, ",")})
 		return nil, erro.Err()
 	}
-	userRoles := md.Get(UserRolesKey)
+	userRoles := md.Get(strings.ToLower(UserRolesKey))
 	if len(userRoles) == 0 {
 		logger.Warnf("can't get user %s %s roles", userId[0], userLogin[0])
 		erro, _ := status.New(codes.Unauthenticated, "no user credentials found").WithDetails(&shared_pb.ErrorDetail{Field: "User Roles", Description: "User roles was not found in metadata", Actualvalue: strings.Join(userRoles, ",")})
@@ -176,7 +177,7 @@ func CreateTokenCookie(token string, refreshToken string, rememberMe bool) (toke
 			HttpOnly: true,
 		}
 	} else {
-		time := (int)((20 * time.Minute) / time.Second)
+		time := (int)((31 * 24 * time.Hour) / time.Second)
 		if rememberMe {
 			time = 0
 		}
