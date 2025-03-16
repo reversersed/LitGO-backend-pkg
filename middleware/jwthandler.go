@@ -94,6 +94,7 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 		return
 	}
 
+	var tokenReply *users_pb.TokenReply
 	if !claims.IsValidAt(time.Now()) {
 		refreshCookie, err := c.Cookie(RefreshCookieName)
 		if err != nil {
@@ -103,7 +104,7 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		tokenReply, err := j.userServer.UpdateToken(c.Request.Context(), &users_pb.TokenRequest{Refreshtoken: refreshCookie})
+		tokenReply, err = j.userServer.UpdateToken(c.Request.Context(), &users_pb.TokenRequest{Refreshtoken: refreshCookie})
 		if err != nil {
 			c.SetCookie(TokenCookieName, "", -1, "/", "", true, true)
 			c.SetCookie(RefreshCookieName, "", -1, "/", "", true, true)
@@ -111,8 +112,6 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		c.SetCookie(TokenCookieName, tokenReply.GetToken(), (int)((20*time.Minute)/time.Second), "/", "", true, true)
-		c.SetCookie(RefreshCookieName, tokenReply.GetRefreshtoken(), (int)((31*24*time.Hour)/time.Second), "/", "", true, true)
 	}
 
 	j.logger.Infof("user's %s token has been verified with %v rights", claims.Login, claims.Roles)
@@ -125,6 +124,12 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 	ctx := metadata.NewIncomingContext(c.Request.Context(), md)
 	c.Request = c.Request.WithContext(ctx)
 	c.Next()
+
+	if tokenReply != nil {
+		j.logger.Infof("user %s %s refreshed with new token", claims.ID, claims.Login)
+		c.SetCookie(TokenCookieName, tokenReply.GetToken(), (int)((20*time.Minute)/time.Second), "/", "", true, true)
+		c.SetCookie(RefreshCookieName, tokenReply.GetRefreshtoken(), (int)((31*24*time.Hour)/time.Second), "/", "", true, true)
+	}
 }
 func GetCredentialsFromContext(c context.Context, logger Logger) (*shared_pb.UserCredentials, error) {
 	md, ok := metadata.FromIncomingContext(c)
