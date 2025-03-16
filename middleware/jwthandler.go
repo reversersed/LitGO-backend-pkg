@@ -131,7 +131,7 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 	}
 	c.Next()
 
-	if _, err := c.Cookie(TokenCookieName); tokenReply != nil && err != nil {
+	if tokenReply != nil {
 		j.logger.Infof("user %s %s refreshed with new token", claims.ID, claims.Login)
 		c.SetCookie(TokenCookieName, tokenReply.GetToken(), (int)((20*time.Minute)/time.Second), "/", "", true, true)
 		c.SetCookie(RefreshCookieName, tokenReply.GetRefreshtoken(), (int)((31*24*time.Hour)/time.Second), "/", "", true, true)
