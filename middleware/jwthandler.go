@@ -123,7 +123,12 @@ func (j *jwtMiddleware) Middleware(c *gin.Context) {
 		md.Append(UserRolesKey, role)
 	}
 	ctx := metadata.NewOutgoingContext(c.Request.Context(), md)
-	c.Request = c.Request.WithContext(ctx)
+	c.Request, err = http.NewRequestWithContext(ctx, c.Request.Method, c.Request.URL.String(), c.Request.Body)
+	if err != nil {
+		c.Error(status.Error(codes.Internal, err.Error()))
+		c.Abort()
+		return
+	}
 	c.Next()
 
 	if _, err := c.Cookie(TokenCookieName); tokenReply != nil && err != nil {
