@@ -26,10 +26,10 @@ type storage interface {
 	IncreateBookCount(context.Context, primitive.ObjectID) error
 }
 type RabbitService struct {
-	conn     *amqp.Connection
-	logger   logger
-	storage  storage
-	channels []io.Closer
+	Conn     *amqp.Connection
+	Logger   logger
+	Storage  storage
+	Channels []io.Closer
 }
 
 func New(config *RabbitConfig, logger logger, storage storage) (*RabbitService, error) {
@@ -38,17 +38,17 @@ func New(config *RabbitConfig, logger logger, storage storage) (*RabbitService, 
 		return nil, err
 	}
 	return &RabbitService{
-		conn:    connection,
-		logger:  logger,
-		storage: storage,
+		Conn:    connection,
+		Logger:  logger,
+		Storage: storage,
 	}, nil
 }
 
 func (s *RabbitService) Close() error {
-	for _, c := range s.channels {
+	for _, c := range s.Channels {
 		if err := c.Close(); err != nil {
 			return err
 		}
 	}
-	return s.conn.Close()
+	return s.Conn.Close()
 }
