@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//go:generate mockgen -source=init.go -destination=mocks/rabbit.go
+//go:generate mockgen -source=client.go -destination=mocks/rabbit.go
 type RabbitConfig struct {
 	Rabbit_User string `env:"RABBITMQ_USER" env-required:"true" env-description:"RabbitMQ user"`
 	Rabbit_Pass string `env:"RABBITMQ_PASS" env-required:"true" env-description:"RabbitMQ password"`
