@@ -43,7 +43,14 @@ func New(config *RabbitConfig, logger logger, storage storage) (*RabbitService, 
 		Storage: storage,
 	}, nil
 }
-
+func (s *RabbitService) CreateChannel() (*amqp.Channel, error) {
+	channel, err := s.Conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+	s.Channels = append(s.Channels, channel)
+	return channel, nil
+}
 func (s *RabbitService) Close() error {
 	for _, c := range s.Channels {
 		if err := c.Close(); err != nil {
