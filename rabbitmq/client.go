@@ -3,7 +3,6 @@ package rabbitmq
 import (
 	"context"
 	"fmt"
-	"io"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -29,7 +28,7 @@ type RabbitService struct {
 	Conn     *amqp.Connection
 	Logger   logger
 	Storage  storage
-	Channels []io.Closer
+	Channels []*amqp.Channel
 }
 
 func New(config *RabbitConfig, logger logger, storage storage) (*RabbitService, error) {
@@ -50,6 +49,20 @@ func (s *RabbitService) CreateChannel() (*amqp.Channel, error) {
 	}
 	s.Channels = append(s.Channels, channel)
 	return channel, nil
+}
+func (s *RabbitService) CloseChannel(channel *amqp.Channel) {
+	ChannelsCopy := make([]*amqp.Channel, len(s.Channels))
+	copy(ChannelsCopy, s.Channels)
+
+	s.Channels = make([]*amqp.Channel, 0)
+	for _, ch := range ChannelsCopy {
+		if ch == channel {
+			continue
+		}
+		s.Channels = append(s.Channels, ch)
+	}
+
+	channel.Close()
 }
 func (s *RabbitService) Close() error {
 	for _, c := range s.Channels {
