@@ -57,7 +57,6 @@ type UserTokenModel struct {
 }
 
 func NewJwtMiddleware(logger Logger, secret string, userService users_pb.UserClient) (*jwtMiddleware, error) {
-
 	return &jwtMiddleware{
 		secret:     secret,
 		logger:     logger,
